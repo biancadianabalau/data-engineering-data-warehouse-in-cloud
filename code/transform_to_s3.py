@@ -4,7 +4,7 @@ import boto3
 from io import BytesIO
 
 DB_URL = 'postgresql://postgres:key@localhost:5432/project3'
-S3_BUCKET = "etl-project3-data-warehouse-in-cloud"
+S3_BUCKET = "bucketname"
 AWS_ACCESS_KEY = "key"
 AWS_SECRET_KEY = "secret_key"
 
@@ -36,4 +36,5 @@ tables = [
 ]
 
 for t in tables:
+
     upload_to_s3_as_parquet(t)
