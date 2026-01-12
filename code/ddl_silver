@@ -1,0 +1,19 @@
+--in progress
+
+CREATE SCHEMA IF NOT EXISTS silver;
+
+
+CREATE OR REPLACE TABLE silver.customers AS
+SELECT 
+    TRIM(customer_id) AS customer_id,
+    TRIM(customer_unique_id) AS customer_unique_id,
+    CAST(TRIM(customer_zip_code_prefix) AS INT) AS customer_zip_code_prefix,
+    UPPER(TRIM(customer_city)) AS customer_city,
+    UPPER(TRIM(customer_state)) AS customer_state,
+    current_timestamp() AS _ingested_at
+FROM bronze.customers
+WHERE customer_id IS NOT NULL;
+
+DESCRIBE silver.customers;
+SELECT * FROM silver.customers LIMIT 10;
+SELECT 'Silver Customers' AS layer, COUNT(*) AS row_count FROM silver.customers;
