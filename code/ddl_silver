@@ -1,8 +1,6 @@
---in progress
-
 CREATE SCHEMA IF NOT EXISTS silver;
 
-
+--Table 1: 
 CREATE OR REPLACE TABLE silver.customers AS
 SELECT 
     TRIM(customer_id) AS customer_id,
@@ -17,3 +15,167 @@ WHERE customer_id IS NOT NULL;
 DESCRIBE silver.customers;
 SELECT * FROM silver.customers LIMIT 10;
 SELECT 'Silver Customers' AS layer, COUNT(*) AS row_count FROM silver.customers;
+
+
+--Table 2: 
+CREATE OR REPLACE TABLE silver.products AS
+SELECT 
+    TRIM(product_id) AS product_id,
+    UPPER(TRIM(product_category_name)) AS product_category_name,
+    CAST(product_name_lenght AS INT) AS product_name_lenght,
+    CAST(product_description_lenght AS INT) AS product_description_lenght,
+    CAST(product_photos_qty AS INT) AS product_photos_qty,
+    CAST(product_weight_g AS FLOAT) AS product_weight_g,
+    CAST(product_length_cm AS FLOAT) AS product_length_cm,
+    CAST(product_height_cm AS FLOAT) AS product_height_cm,
+    CAST(product_width_cm AS FLOAT) AS product_width_cm
+FROM bronze.products;
+
+
+DESCRIBE silver.products;
+SELECT * FROM silver.products LIMIT 10;
+SELECT 'Silver Products' AS layer, COUNT(*) AS row_count FROM silver.products;
+
+SELECT 
+    COUNT(*) AS total_rows,
+    -- Calculăm NULL-urile ca diferență între totalul de rânduri și valorile non-null
+    COUNT(*) - COUNT(product_id) AS null_id,
+    COUNT(*) - COUNT(product_category_name) AS null_category,
+    COUNT(*) - COUNT(product_name_lenght) AS null_name_len,
+    COUNT(*) - COUNT(product_description_lenght) AS null_desc_len,
+    COUNT(*) - COUNT(product_photos_qty) AS null_photos,
+    COUNT(*) - COUNT(product_weight_g) AS null_weight,
+    COUNT(*) - COUNT(product_length_cm) AS null_length,
+    COUNT(*) - COUNT(product_height_cm) AS null_height,
+    COUNT(*) - COUNT(product_width_cm) AS null_width
+FROM silver.products;
+
+UPDATE silver.products
+SET product_category_name = COALESCE(NULLIF(UPPER(TRIM(product_category_name)), ''), 'OTHER');
+
+UPDATE silver.products
+SET 
+    product_name_lenght = COALESCE(NULLIF(TRIM(product_name_lenght), ''), '0'),
+    product_description_lenght = COALESCE(NULLIF(TRIM(product_description_lenght), ''), '0'),
+    product_photos_qty = COALESCE(NULLIF(TRIM(product_photos_qty), ''), '0'),
+    product_weight_g = COALESCE(NULLIF(TRIM(product_weight_g), ''), '0'),
+    product_length_cm = COALESCE(NULLIF(TRIM(product_length_cm), ''), '0'),
+    product_height_cm = COALESCE(NULLIF(TRIM(product_height_cm), ''), '0'),
+    product_width_cm = COALESCE(NULLIF(TRIM(product_width_cm), ''), '0');
+
+--Table 3 :
+
+CREATE OR REPLACE TABLE silver.product_category_translation AS
+SELECT 
+    UPPER(TRIM(product_category_name)) AS product_category_name,
+    UPPER(TRIM(product_category_name_english)) AS product_category_name_english
+FROM bronze.product_category_translation;
+
+DESCRIBE silver.product_category_translation;
+SELECT * FROM silver.product_category_translation LIMIT 10;
+SELECT 'Silver Products Category Translation' AS layer, COUNT(*) AS row_count FROM silver.product_category_translation;
+
+--Table 4 :
+
+CREATE OR REPLACE TABLE silver.sellers AS
+SELECT 
+    TRIM(seller_id) AS seller_id,
+    CAST(TRIM(seller_zip_code_prefix) AS INT) AS seller_zip_code_prefix,
+    UPPER(TRIM(seller_city)) AS seller_city,
+    UPPER(TRIM(seller_state)) AS seller_state
+FROM bronze.sellers;
+
+DESCRIBE silver.sellers;
+SELECT * FROM silver.sellers LIMIT 10;
+SELECT 'Silver sellers' AS layer, COUNT(*) AS row_count FROM silver.sellers;
+
+--Table 5 :
+
+CREATE OR REPLACE TABLE silver.geolocation AS
+SELECT 
+    CAST(TRIM(geolocation_zip_code_prefix) AS INT) AS geolocation_zip_code_prefix,
+    CAST(TRIM(geolocation_lat) AS DOUBLE) AS geolocation_lat,
+    CAST(TRIM(geolocation_lng) AS DOUBLE) AS geolocation_lng,
+    UPPER(TRIM(geolocation_city)) AS geolocation_city,
+    UPPER(TRIM(geolocation_state)) AS geolocation_state
+FROM bronze.geolocation;
+
+DESCRIBE silver.geolocation;
+SELECT * FROM silver.geolocation LIMIT 10;
+SELECT 'Silver geolocation' AS layer, COUNT(*) AS row_count FROM silver.geolocation;
+
+--Table 6 :
+
+CREATE OR REPLACE TABLE silver.orders AS
+SELECT 
+    TRIM(order_id) AS order_id,
+    TRIM(customer_id) AS customer_id,
+    UPPER(TRIM(order_status)) AS order_status,
+    to_timestamp(TRIM(order_purchase_timestamp), 'yyyy-MM-dd HH:mm:ss') AS order_purchase_timestamp,
+    to_timestamp(TRIM(order_approved_at), 'yyyy-MM-dd HH:mm:ss') AS order_approved_at,
+    to_timestamp(TRIM(order_delivered_carrier_date), 'yyyy-MM-dd HH:mm:ss') AS order_delivered_carrier_date,
+    to_timestamp(TRIM(order_delivered_customer_date), 'yyyy-MM-dd HH:mm:ss') AS order_delivered_customer_date,
+    to_timestamp(TRIM(order_estimated_delivery_date), 'yyyy-MM-dd HH:mm:ss') AS order_estimated_delivery_date,
+    CASE 
+        WHEN order_delivered_customer_date IS NOT NULL THEN 1 
+        ELSE 0 
+    END AS is_delivered
+FROM bronze.orders;
+
+
+DESCRIBE silver.orders;
+SELECT * FROM silver.orders LIMIT 10;
+SELECT 'silver.orders' AS layer, COUNT(*) AS row_count FROM silver.orders;
+
+
+--Table 7 :
+CREATE OR REPLACE TABLE silver.order_items AS
+SELECT 
+    TRIM(order_id) AS order_id,
+    CAST(TRIM(order_item_id) AS INT) AS order_item_id,
+    TRIM(product_id) AS product_id,
+    TRIM(seller_id) AS seller_id,
+    to_timestamp(TRIM(shipping_limit_date), 'yyyy-MM-dd HH:mm:ss') AS shipping_limit_date,
+    CAST(TRIM(price) AS DECIMAL(10,2)) AS price,
+    CAST(TRIM(freight_value) AS DECIMAL(10,2)) AS freight_value
+FROM bronze.order_items;
+
+
+DESCRIBE silver.order_items;
+SELECT * FROM silver.order_items LIMIT 10;
+SELECT 'silver.order_items' AS layer, COUNT(*) AS row_count FROM silver.order_items;
+
+--Table 8 :
+
+CREATE OR REPLACE TABLE silver.order_payments AS
+SELECT 
+    TRIM(order_id) AS order_id,
+    CAST(TRIM(payment_sequential) AS INT) AS payment_sequential,
+    UPPER(TRIM(payment_type)) AS payment_type,
+    CAST(TRIM(payment_installments) AS INT) AS payment_installments,
+    CAST(TRIM(payment_value) AS DECIMAL(10,2)) AS payment_value
+FROM bronze.order_payments;
+
+DESCRIBE silver.order_payments;
+SELECT * FROM silver.order_payments LIMIT 10;
+SELECT 'silver.order_payments' AS layer, COUNT(*) AS row_count FROM silver.order_payments;
+
+--Table 9 :
+
+CREATE OR REPLACE TABLE silver.order_reviews AS
+SELECT 
+    TRIM(review_id) AS review_id,
+    TRIM(order_id) AS order_id,
+    CAST(TRIM(review_score) AS INT) AS review_score,
+    NULLIF(TRIM(review_comment_title), '') AS review_comment_title,
+    NULLIF(TRIM(review_comment_message), '') AS review_comment_message,
+    to_timestamp(TRIM(review_creation_date), 'yyyy-MM-dd HH:mm:ss') AS review_creation_date,
+    to_timestamp(TRIM(review_answer_timestamp), 'yyyy-MM-dd HH:mm:ss') AS review_answer_timestamp
+FROM bronze.order_reviews;
+
+
+
+DESCRIBE silver.order_reviews;
+DESCRIBE bronze.order_reviews;
+SELECT * FROM silver.order_reviews LIMIT 10;
+SELECT 'silver.order_reviews' AS layer, COUNT(*) AS row_count FROM silver.order_reviews;
