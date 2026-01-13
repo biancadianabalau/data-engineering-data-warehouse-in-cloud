@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS bronze.customers;
 
 CREATE TABLE bronze.customers
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/customers/customers.parquet';
+LOCATION 's3://bucket_name/bronze/customers/customers.parquet';
 
 DESCRIBE bronze.customers;
 SELECT * FROM bronze.customers LIMIT 10;
@@ -27,7 +27,7 @@ SELECT * FROM bronze.customers LIMIT 10;
 DROP TABLE IF EXISTS bronze.products;
 CREATE TABLE IF NOT EXISTS bronze.products
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/products/products.parquet';
+LOCATION 's3://bucket_name/bronze/products/products.parquet';
 
 DESCRIBE bronze.products;
 SELECT * FROM bronze.products LIMIT 10;
@@ -36,7 +36,7 @@ SELECT * FROM bronze.products LIMIT 10;
 DROP TABLE IF EXISTS bronze.product_category_translation;
 CREATE TABLE IF NOT EXISTS bronze.product_category_translation
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/product_category_translation/product_category_translation.parquet';
+LOCATION 's3://bucket_name/bronze/product_category_translation/product_category_translation.parquet';
 
 DESCRIBE bronze.product_category_translation;
 SELECT * FROM bronze.product_category_translation LIMIT 10;
@@ -44,35 +44,35 @@ SELECT * FROM bronze.product_category_translation LIMIT 10;
 DROP TABLE IF EXISTS bronze.sellers;
 CREATE TABLE IF NOT EXISTS bronze.sellers
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/sellers/sellers.parquet';
+LOCATION 's3://bucket_name/bronze/sellers/sellers.parquet';
 
 
 
 DROP TABLE IF EXISTS bronze.geolocation;
 CREATE TABLE IF NOT EXISTS bronze.geolocation
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/geolocation/geolocation.parquet';
+LOCATION 's3://bucket_name/bronze/geolocation/geolocation.parquet';
 
 
 
 DROP TABLE IF EXISTS bronze.orders;
 CREATE TABLE IF NOT EXISTS bronze.orders
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/orders/orders.parquet';
+LOCATION 's3://bucket_name/bronze/orders/orders.parquet';
 
 
 
 DROP TABLE IF EXISTS bronze.order_items;
 CREATE TABLE IF NOT EXISTS bronze.order_items
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/order_items/order_items.parquet';
+LOCATION 's3://bucket_name/bronze/order_items/order_items.parquet';
 
 
 
 DROP TABLE IF EXISTS bronze.order_payments;
 CREATE TABLE IF NOT EXISTS bronze.order_payments
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/order_payments/order_payments.parquet';
+LOCATION 's3://bucket_name/bronze/order_payments/order_payments.parquet';
 
 
 
@@ -80,4 +80,4 @@ LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/order_payments/order_
 DROP TABLE IF EXISTS bronze.order_reviews;
 CREATE TABLE IF NOT EXISTS bronze.order_reviews
 USING PARQUET
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/bronze/order_reviews/order_reviews.parquet';
+LOCATION 's3://bucket_name/bronze/order_reviews/order_reviews.parquet';
