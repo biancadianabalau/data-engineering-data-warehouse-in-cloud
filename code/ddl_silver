@@ -181,7 +181,7 @@ ALTER TABLE silver.customers RENAME TO silver.customers_old;
 
 CREATE TABLE silver.customers
 USING DELTA
-LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/customers'
+LOCATION 's3://bucket_name/silver/customers'
 AS SELECT * FROM silver.customers_old;
 
 DROP TABLE silver.customers_old;
@@ -189,50 +189,50 @@ DROP TABLE silver.customers_old;
 
 -- 2. Table Products
 ALTER TABLE silver.products RENAME TO silver.products_old;
-CREATE TABLE silver.products USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/products'
+CREATE TABLE silver.products USING DELTA LOCATION 's3://bucket_name/silver/products'
 AS SELECT * FROM silver.products_old;
 DROP TABLE silver.products_old;
 
 -- 3. Table Product_Category_Translation
 ALTER TABLE silver.product_category_translation RENAME TO silver.product_category_translation_old;
-CREATE TABLE silver.product_category_translation USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/product_category_translation'
+CREATE TABLE silver.product_category_translation USING DELTA LOCATION 's3://bucket_name/silver/product_category_translation'
 AS SELECT * FROM silver.product_category_translation_old;
 DROP TABLE silver.product_category_translation_old
 
 -- 4. Table Sellers
 ALTER TABLE silver.sellers RENAME TO silver.sellers_old;
-CREATE TABLE silver.sellers USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/sellers'
+CREATE TABLE silver.sellers USING DELTA LOCATION 's3://bucket_name/silver/sellers'
 AS SELECT * FROM silver.sellers_old;
 DROP TABLE silver.sellers_old;
 
 -- 5. Table Orders
 
 ALTER TABLE silver.orders RENAME TO silver.orders_old;
-CREATE TABLE silver.orders USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/orders/'
+CREATE TABLE silver.orders USING DELTA LOCATION 's3://bucket_name/silver/orders/'
 AS SELECT * FROM silver.orders_old
 DROP TABLE silver.orders_old;
 
 
 -- 6. Table Geolocation
 ALTER TABLE silver.geolocation RENAME TO silver.geolocation_old;
-CREATE TABLE silver.geolocation USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/geolocation'
+CREATE TABLE silver.geolocation USING DELTA LOCATION 's3://bucket_name/silver/geolocation'
 AS SELECT * FROM silver.geolocation_old;
 DROP TABLE silver.geolocation_old;
 
 -- 7. Table Order_Items
 ALTER TABLE silver.order_items RENAME TO silver.order_items_old;
-CREATE TABLE silver.order_items USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_items'
+CREATE TABLE silver.order_items USING DELTA LOCATION 's3://bucket_name/silver/order_items'
 AS SELECT * FROM silver.order_items_old;
 DROP TABLE silver.order_items_old;
 
 -- 8. Table Order_Payments
 ALTER TABLE silver.order_payments RENAME TO silver.order_payments_old;
-CREATE TABLE silver.order_payments USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_payments'
+CREATE TABLE silver.order_payments USING DELTA LOCATION 's3://bucket_name/silver/order_payments'
 AS SELECT * FROM silver.order_payments_old;
 DROP TABLE silver.order_payments_old;
 
 -- 9. Table Order_Reviews
 ALTER TABLE silver.order_reviews RENAME TO silver.order_reviews_old;
-CREATE TABLE silver.order_reviews USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_reviews'
+CREATE TABLE silver.order_reviews USING DELTA LOCATION 's3://bucket_name/order_reviews'
 AS SELECT * FROM silver.order_reviews_old;
 DROP TABLE silver.order_reviews_old;
