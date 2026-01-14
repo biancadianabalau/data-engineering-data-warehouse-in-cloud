@@ -26,11 +26,18 @@ A Python script extracts data from PostgreSQL and offloads it to AWS S3 as Parqu
 ### 2. Medallion Layering (Databricks)
 - Bronze Layer: Raw data is registered in Databricks as external tables pointing to S3 Parquet files.
 
-- Silver Layer: * Data cleaning: Whitespace removal (TRIM), case standardization (UPPER).
+- Silver Layer: Data cleaning: Whitespace removal (TRIM), case standardization (UPPER).
+  - Type Casting: Precision handling for financial data (DECIMAL), coordinates (DOUBLE), and timestamps (ISO 8601).
+  - Storage: The Silver layer is migrated back to S3 using the Delta Lake format, providing ACID compliance and schema enforcement.
+  
+- Gold Layer: Data Modeling: Implementation of a Star Schema architecture consisting of 5 specialized tables (2 Fact tables and 3 Dimension tables) optimized for Business Intelligence
+  - Fact Tables: Calculation of key financial metrics such as Total Order Value (Price + Freight) and multi-level granularity (Order-level vs. Item-level).
+  - Dimension Tables: Enrichment of master data with performance tiers for sellers and geographical segmentation for customers.
 
-- Type Casting: Precision handling for financial data (DECIMAL), coordinates (DOUBLE), and timestamps (ISO 8601).
+ -Storage: Final analytical tables are materialized as External Delta Tables in S3, ensuring high-speed query performance for Power BI while maintaining low compute costs.
 
-- Storage: The Silver layer is migrated back to S3 using the Delta Lake format, providing ACID compliance and schema enforcement.
+ <img width="800" height="750" alt="gold-layer drawio" src="https://github.com/user-attachments/assets/f092a48f-77e6-441a-a20d-42d16dcea09f" />
+
 
 ## Key Features
 - Data Integrity: Handled missing delivery timestamps as NULL to maintain business logic accuracy.
@@ -42,3 +49,10 @@ A Python script extracts data from PostgreSQL and offloads it to AWS S3 as Parqu
 
 ## Data Source
 This project utilizes the Brazilian E-Commerce Public Dataset by Olist, a comprehensive collection of 100k real-world anonymized orders from 2016 to 2018, providing a complex relational structure ideal for demonstrating large-scale data integration.
+
+https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce/discussion?sort=hotness
+
+
+<img width="1121" height="826" alt="tables_relationshi drawio" src="https://github.com/user-attachments/assets/ae947aa7-0f49-4aa9-8b33-f6fb441f5ebe" />
+
+
