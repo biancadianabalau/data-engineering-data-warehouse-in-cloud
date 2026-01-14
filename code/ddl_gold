@@ -1,0 +1,142 @@
+CREATE SCHEMA IF NOT EXISTS gold;
+--restore the connection with the silver tables
+CREATE TABLE IF NOT EXISTS silver.orders USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/orders';
+CREATE TABLE IF NOT EXISTS silver.customers USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/customers';
+CREATE TABLE IF NOT EXISTS silver.products USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/products';
+CREATE TABLE IF NOT EXISTS silver.sellers USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/sellers';
+CREATE TABLE IF NOT EXISTS silver.order_payments USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_payments';
+CREATE TABLE IF NOT EXISTS silver.order_reviews USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_reviews';
+CREATE TABLE IF NOT EXISTS silver.geolocation USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/geolocation';
+CREATE TABLE IF NOT EXISTS silver.product_category_translation USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/product_category_translation';
+CREATE TABLE IF NOT EXISTS silver.order_items_old USING DELTA LOCATION 's3://etl-project3-data-warehouse-in-cloud/silver/order_items';
+
+
+CREATE OR REPLACE TABLE gold.fact_sales_item_level
+USING DELTA
+LOCATION 's3://etl-project3-data-warehouse-in-cloud/gold/fact_sales_item_level'
+AS
+SELECT 
+    oi.order_id,
+    oi.order_item_id,
+    oi.product_id,
+    oi.seller_id,
+    o.customer_id,
+    oi.shipping_limit_date AS shipping_limit_date,
+    oi.price AS item_price,
+    oi.freight_value AS item_freight,
+    (oi.price + oi.freight_value) AS item_total_value,
+    p.product_category_name_english,
+    o.order_status,
+    o.order_purchase_timestamp AS sale_date
+FROM silver.order_items_old oi
+JOIN silver.orders o ON oi.order_id = o.order_id
+LEFT JOIN (
+    SELECT pr.product_id, tr.product_category_name_english
+    FROM silver.products pr
+    JOIN silver.product_category_translation tr 
+      ON pr.product_category_name = tr.product_category_name
+) p ON oi.product_id = p.product_id;
+
+DESCRIBE gold.fact_sales_item_level
+SELECT * FROM gold.fact_sales_item_level LIMIT 10;
+SELECT 'sales item level' AS layer, COUNT(*) AS row_count FROM gold.fact_sales_item_level;
+
+CREATE OR REPLACE TABLE gold.fact_sales_order_level
+USING DELTA
+LOCATION 's3://etl-project3-data-warehouse-in-cloud/gold/fact_sales_order_level'
+AS
+SELECT 
+    o.order_id,
+    o.customer_id,
+    o.order_status,
+    o.order_purchase_timestamp AS sale_date,
+    -- Agregări financiare
+    SUM(oi.price) AS total_items_price,
+    SUM(oi.freight_value) AS total_freight_value,
+    SUM(oi.price + oi.freight_value) AS total_order_value,
+    -- Metrică de volum
+    COUNT(oi.product_id) AS total_items_count,
+    -- Luăm prima metodă de plată găsită pentru o comandă (sau poți adăuga logica de SUM pe payments)
+    MAX(pay.payment_type) AS primary_payment_type
+FROM silver.orders o
+JOIN silver.order_items_old oi ON o.order_id = oi.order_id
+LEFT JOIN silver.order_payments pay ON o.order_id = pay.order_id
+GROUP BY 
+    o.order_id, 
+    o.customer_id, 
+    o.order_status, 
+    o.order_purchase_timestamp;
+
+
+DESCRIBE gold.fact_sales_order_level
+SELECT * FROM gold.fact_sales_order_level LIMIT 10;
+SELECT 'sales order level' AS layer, COUNT(*) AS row_count FROM gold.fact_sales_order_level;
+
+SELECT DISTINCT geolocation_state FROM silver.geolocation
+
+CREATE OR REPLACE TABLE gold.dim_customers_segmentation
+USING DELTA
+LOCATION 's3://etl-project3-data-warehouse-in-cloud/gold/dim_customers_segmentation'
+AS
+SELECT 
+    customer_id,
+    customer_unique_id,
+    customer_city,
+    customer_state,
+    CASE 
+        WHEN customer_state IN ('SP', 'RJ', 'MG', 'ES') THEN 'Southeast'
+        WHEN customer_state IN ('BA', 'SE', 'PE', 'AL', 'PB', 'CE', 'PI', 'MA', 'RN') THEN 'Northeast'
+        WHEN customer_state IN ('PR', 'SC', 'RS') THEN 'South'
+        WHEN customer_state IN ('DF', 'GO', 'MT', 'MS') THEN 'Central-West'
+        WHEN customer_state IN ('AC', 'PA', 'AP', 'AM', 'RR', 'RO', 'TO') THEN 'North'
+        ELSE 'Unknown' 
+    END AS geographical_region
+FROM silver.customers;
+
+SELECT * FROM gold.dim_customers_segmentation LIMIT 50;
+
+
+CREATE OR REPLACE TABLE gold.dim_geography_market
+USING DELTA
+LOCATION 's3://etl-project3-data-warehouse-in-cloud/gold/dim_geography_market'
+AS
+SELECT 
+    geolocation_zip_code_prefix AS zip_code,
+    geolocation_city AS city,
+    geolocation_state AS state,
+    AVG(geolocation_lat) AS latitude,
+    AVG(geolocation_lng) AS longitude
+FROM silver.geolocation
+GROUP BY 1, 2, 3;
+
+SELECT * FROM gold.dim_geography_market LIMIT 50;
+
+CREATE OR REPLACE TABLE gold.dim_sellers_performance
+USING DELTA
+LOCATION 's3://etl-project3-data-warehouse-in-cloud/gold/dim_sellers_performance'
+AS
+WITH seller_metrics AS (
+    SELECT 
+        seller_id,
+        COUNT(DISTINCT order_id) as total_orders,
+        SUM(price) as total_revenue,
+        AVG(price) as avg_item_value
+    FROM silver.order_items_old
+    GROUP BY seller_id
+)
+SELECT 
+    s.seller_id,
+    s.seller_city,
+    s.seller_state,
+    COALESCE(sm.total_orders, 0) as total_orders,
+    COALESCE(sm.total_revenue, 0) as total_revenue,
+    CASE 
+        WHEN sm.total_revenue > 10000 THEN 'Top Seller'
+        WHEN sm.total_revenue BETWEEN 2000 AND 10000 THEN 'Medium Seller'
+        ELSE 'Small Seller'
+    END AS seller_tier
+FROM silver.sellers s
+LEFT JOIN seller_metrics sm ON s.seller_id = sm.seller_id;
+
+SELECT * FROM gold.dim_sellers_performance LIMIT 50;
+
