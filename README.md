@@ -53,6 +53,6 @@ This project utilizes the Brazilian E-Commerce Public Dataset by Olist, a compre
 https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce/discussion?sort=hotness
 
 
-<img width="1121" height="826" alt="tables_relationshi drawio" src="https://github.com/user-attachments/assets/ae947aa7-0f49-4aa9-8b33-f6fb441f5ebe" />
+<img width="800" height="626" alt="tables_relationshi drawio" src="https://github.com/user-attachments/assets/ae947aa7-0f49-4aa9-8b33-f6fb441f5ebe" />
 
 
