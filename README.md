@@ -17,6 +17,9 @@ Tech Stack
 
 - Orchestration: Airflow (Work in Progress).
 
+<img width="1553" height="612" alt="arhitectura drawio" src="https://github.com/user-attachments/assets/2987e0f6-5fb9-484b-b77c-1e73d37c868d" />
+
+
 ## Pipeline Phases
 ### 1. Ingestion & Pre-processing
 Original CSV datasets are loaded into PostgreSQL via Python.
