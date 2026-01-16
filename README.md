@@ -17,7 +17,8 @@ Tech Stack
 
 - Orchestration: Airflow (Work in Progress).
 
-<img width="1553" height="612" alt="arhitectura drawio" src="https://github.com/user-attachments/assets/2987e0f6-5fb9-484b-b77c-1e73d37c868d" />
+
+<img width="1100" height="493" alt="architecture-docker-arhitectura drawio" src="https://github.com/user-attachments/assets/278e1ee2-7e02-4e42-8356-3e7b3142c46f" />
 
 
 ## Pipeline Phases
