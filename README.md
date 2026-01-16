@@ -1,21 +1,36 @@
 # E-Commerce Cloud - Data Lakehouse Project
 Project Overview - in progress
 
-An end-to-end Data Engineering pipeline that ingests, transforms, and standardizes e-commerce data from an on-premise PostgreSQL environment to a scalable Cloud Data Lakehouse on AWS S3 using Databricks.
+An end-to-end Data Engineering pipeline designed to automate the flow of e-commerce data. 
+The system migrates raw data from an on-premise PostgreSQL environment to a scalable Cloud Data Lakehouse on AWS S3 using Apache Airflow for orchestration and Databricks/Spark for processing.
 
-## Architecture
-The project follows the Medallion Architecture (Bronze -> Silver -> Gold) to ensure data quality and reliability.
+## Architecture & Design
+The project implements the Medallion Architecture to ensure data integrity:
 
-Tech Stack
-- Ingestion: Python (Pandas/SQLAlchemy), PostgreSQL.
+Bronze (Raw): Landing zone for raw CSV/PostgreSQL data.
 
-- Cloud Storage: AWS S3 (Parquet & Delta formats).
+Silver (Cleansed): Standardized, deduplicated, and typed data in Parquet/Delta format.
 
-- Data Processing: Databricks SQL, Apache Spark.
+Gold (Analytics): Business-ready tables for BI and reporting.
 
-- Data Governance: Delta Lake (ACID Transactions, Time Travel).
+## Tech Stack
+Orchestration: Apache Airflow (running in Docker containers).
 
-- Orchestration: Airflow (Work in Progress).
+Ingestion: Python (Pandas & SQLAlchemy), PostgreSQL.
+
+Cloud Storage: AWS S3 (Optimized Parquet storage).
+
+Data Processing: Databricks, Apache Spark.
+
+Containerization: Docker & Docker Compose (Multi-service setup: Webserver, Scheduler, Postgres).
+
+## Infrastructure & Setup (Local Environment)
+The entire orchestration layer is containerized for reproducibility.
+
+Prerequisites
+Docker & Docker Compose
+
+AWS Account (S3 Bucket & IAM Credentials)
 
 
 <img width="1100" height="493" alt="architecture-docker-arhitectura drawio" src="https://github.com/user-attachments/assets/278e1ee2-7e02-4e42-8356-3e7b3142c46f" />
