@@ -1,0 +1,56 @@
+
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5433:5432"
+
+  airflow-init:
+    build: .
+    environment:
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b9e97f4a7c5f8e1e2d3b4a5c6d7e8f9b
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    command: airflow db migrate && airflow users create --username admin --firstname Bianca --lastname Zaharia --role Admin --email admin@example.com --password admin
+    depends_on:
+      - postgres
+
+  airflow-webserver:
+    build: .
+    restart: always
+    environment:
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b9e97f4a7c5f8e1e2d3b4a5c6d7e8f9b
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+    ports:
+      - "8085:8080"
+    command: airflow webserver
+    depends_on:
+      - postgres
+
+  airflow-scheduler:
+    build: .
+    restart: always
+    environment:
+      - AIRFLOW__WEBSERVER__SECRET_KEY=b9e97f4a7c5f8e1e2d3b4a5c6d7e8f9b
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+      - _AIRFLOW_WWW_USER_CREATE=true
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+    command: airflow scheduler
+    depends_on:
+      - postgres
